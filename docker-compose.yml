@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: smelinx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smelinx
+      POSTGRES_PASSWORD: smelinx
+      POSTGRES_DB: smelinx
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smelinx -d smelinx"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./smelinx-api
+      dockerfile: Dockerfile
+    container_name: smelinx-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_PORT: 8080
+      DB_DRIVER: postgres
+      DB_DSN: postgres://smelinx:smelinx@postgres:5432/smelinx?sslmode=disable
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./smelinx-web
+    container_name: smelinx-frontend
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      HOST: 0.0.0.0
+      WATCHPACK_POLLING: "true"   # helps file watching inside containers on macOS
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

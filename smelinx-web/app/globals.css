@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b1020;
+  --card: #0f1530;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+}
+
+.container-pad {
+  @apply mx-auto max-w-7xl px-4 md:px-6;
+}
+
+/* Pretty gradient ring for hero */
+.hero-ring {
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(60% 60% at 50% 40%, rgba(91,124,250,0.25), rgba(91,124,250,0) 60%);
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+/* card surface */
+.card-surface {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+}
+
+/* readable body text color on dark */
+.text-body {
+  color: rgba(255,255,255,0.75);
+}
