@@ -1,51 +1,26 @@
-services:
-  postgres:
-    image: postgres:16
-    container_name: smelinx-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: smelinx
-      POSTGRES_PASSWORD: smelinx
-      POSTGRES_DB: smelinx
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U smelinx -d smelinx"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+version: "3.9"
 
-  backend:
+services:
+  api:
     build:
       context: ./smelinx-api
       dockerfile: Dockerfile
-    container_name: smelinx-backend
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      APP_PORT: 8080
-      DB_DRIVER: postgres
-      DB_DSN: postgres://smelinx:smelinx@postgres:5432/smelinx?sslmode=disable
+    env_file:
+      - ./smelinx-api/.env
+    volumes:
+      - ./smelinx-api/data:/app/data        # persist SQLite locally
     ports:
       - "8080:8080"
     restart: unless-stopped
 
-  frontend:
+  web:
     build:
       context: ./smelinx-web
-    container_name: smelinx-frontend
-    depends_on:
-      - backend
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
-      HOST: 0.0.0.0
-      WATCHPACK_POLLING: "true"   # helps file watching inside containers on macOS
+      dockerfile: Dockerfile
+    env_file:
+      - ./smelinx-web/.env
     ports:
       - "3000:3000"
+    depends_on:
+      - api
     restart: unless-stopped
-
-volumes:
-  postgres_data:
