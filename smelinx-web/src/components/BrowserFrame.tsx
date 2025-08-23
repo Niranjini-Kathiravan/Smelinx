@@ -3,7 +3,7 @@ import * as React from "react";
 export default function BrowserFrame({
   children,
   className = "",
-  url = "https://smelinx.com",
+  url = "https://api.smelinx.com",
 }: {
   children: React.ReactNode;
   className?: string;

@@ -1,195 +1,160 @@
 # 🧩 Smelinx
 
-**Smelinx** is an open-source **API lifecycle management platform**.  
-It helps teams **register APIs, track versions, schedule deprecations, and notify consumers automatically**—so you ship faster while keeping clients aligned.
+**Smelinx** is an open-source platform for API lifecycle management. It helps teams **register APIs, track versions, schedule deprecations, and notify consumers automatically** — so you ship faster while keeping clients aligned.
 
-- ✅ Open-source • Self-hostable • Secure  
-- 📬 Automated notices via [SendGrid](https://sendgrid.com)  
-- 🛡️ Enterprise-friendly with role-based access control  
-- 🚀 Deployable in minutes (Docker + Caddy + HTTPS)  
+- ✅ Open-source • Self-hostable • Minimal setup
+- ✉️ Automated email notices via **SendGrid**
+- 📊 Dashboard for APIs, versions & scheduled notifications
 
----
+## 🚀 Why Smelinx?
+
+Managing API changes is hard. Teams often struggle with:
+- **Lost consumers** who miss deprecation announcements
+- **Manual tracking** of API versions and timelines
+- **Communication gaps** between API producers and consumers
+- **Breaking changes** that catch users off guard
+
+Smelinx automates the entire process, ensuring smooth API evolution without surprises.
 
 ## ✨ Features
 
-- **Centralized Registry** – Manage all your APIs with owners, metadata, and contacts.  
-- **Version Lifecycle** – Mark versions as _Active_, _Deprecated_, or _Sunset_ with clear timelines.  
-- **Automated Notices** – Send deprecation/sunset emails with delivery logs.  
-- **Access Control** – Roles for owners, admins, and members.  
-- **Insights & Adoption** – Track migrations and consumer adoption.  
-- **Consumer Directory** – Store client contacts per API for precise updates.  
+- **Centralized Registry** – Manage all your APIs with owners and metadata
+- **Version Lifecycle** – Mark versions Active, Deprecated, or Sunset with clear timelines
+- **Automated Notices** – Send deprecation/sunset emails at the right time
+- **Consumer Tracking** – Keep track of who's using what version
+- **Insights Dashboard** – See adoption, migrations, and upcoming sunsets at a glance
+- **Team Collaboration** – Multiple owners, role-based permissions
 
----
+## 📸 Screenshots
+
+### Main Dashboard
+![Smelinx Dashboard](screenshots/dashboard.png)
+*Overview of all your APIs, versions, and upcoming notifications*
+
+### API Management
+![API Management](screenshots/api-management.png)
+*Manage API versions, deprecation timelines, and consumer notifications*
+
+### Notification Scheduling
+![Notification Scheduling](screenshots/notifications.png)
+*Schedule and track automated deprecation notices*
+
+## 🧭 Getting Started
+
+### Option A — Try the Demo (No Signup Required!)
+
+Want to see Smelinx in action first? 
+
+1. Visit **[smelinx.com](https://smelinx.com)**
+2. Click **"Try Demo"** on the signup page
+3. Explore the full dashboard with sample data
+4. No email required - just instant access! 🎯
+
+### Option B — Hosted Platform 
+
+Ready to manage your own APIs:
+
+1. Visit **[smelinx.com](https://api.smelinx.com)**
+2. Sign up for free
+3. Create your first API
+4. Start managing versions and notifications
+
+### Option C — Self-host with Docker
+
+Perfect for teams wanting full control over their data:
+
+#### Prerequisites
+- Docker and Docker Compose
+- SendGrid account (for email notifications)
+
+#### Installation
+
+1. **Clone repository**
+
+   ```bash
+   git clone https://github.com/Niranjini-Kathiravan/smelinx.git
+   cd smelinx
+   ```
+
+2. **Configure environment**
+   
+   Create `smelinx-api/.env`:
+   ```env
+   SENDGRID_API_KEY=your_sendgrid_api_key
+   SENDER_EMAIL=noreply@yourdomain.com
+   DATABASE_URL=./smelinx.db
+   ```
+   
+   Create `smelinx-web/.env.local`:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:8080
+   ```
+
+3. **Launch**
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. **Access your instance**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+
+## 🧪 Quick Test
+
+Verify everything works:
+
+1. Open http://localhost:3000 and sign up or use https://api.smelinx.com 
+2. Create an API entry with your email as contact
+3. Add version `v1.0` (status: Active)
+4. Schedule a deprecation notice for yesterday
+5. Check your inbox - you should receive the notification! 🎉
 
 
 ## 🏗️ Tech Stack
 
-- **Frontend** – Next.js (App Router) + TailwindCSS  
-- **Backend** – Go + chi router  
-- **Database** – SQLite (Postgres optional)  
-- **Email** – SendGrid integration  
-- **Deployment** – Docker + Caddy (auto HTTPS via Let’s Encrypt)  
+- **Frontend** — Next.js 14 (App Router) + TailwindCSS + TypeScript
+- **Backend** — Go 1.21 + Chi Framework
+- **Database** — SQLite (production-ready, easy backups) + easy migration to PostgreSQL
+- **Email** — SendGrid integration
 
----
+## 🤝 Contributing
 
-## 🔧 Local Development
+We welcome contributions! Here's how to get involved:
 
-### 1. Clone repository
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Development Setup
+
 ```bash
-git clone https://github.com/Niranjini-Kathiravan/smelinx.git
-cd smelinx
-```
+# Backend
+cd smelinx-api
+go mod tidy
+go run main.go
 
-### 2. Start frontend
-```bash
+# Frontend  
 cd smelinx-web
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
-Frontend runs at 👉 http://localhost:3000  
 
-### 3. Start backend
-```bash
-cd ../smelinx-api
-go run cmd/api/main.go
-```
+## 🐛 Issues & Support
 
-Backend runs at 👉 http://localhost:8080  
+- **Bug reports**: [GitHub Issues](https://github.com/Niranjini-Kathiravan/Smelinx/issues)
+- **Feature requests**: [GitHub Discussions](https://github.com/Niranjini-Kathiravan/Smelinx/discussions)
+- **Community**: [Discord Server](https://discord.gg/smelinx) *(coming soon)*
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🚀 Deployment (EC2 + Docker + Route 53)
+**Made with ❤️ by the Smelinx team**
 
-### Prerequisites
-- AWS account with a **Route 53** domain (`smelinx.com`)  
-- EC2 instance (Ubuntu 22.04, `t3.small` recommended)  
-- Elastic IP attached  
-
----
-
-### 1. Configure DNS (Route 53)
-```
-A     smelinx.com       → <Elastic IP>
-A     api.smelinx.com   → <Elastic IP>
-CNAME www.smelinx.com   → smelinx.com
-```
-
----
-
-### 2. Environment Files
-
-**Backend (`smelinx-api/.env`)**
-```dotenv
-PORT=8080
-COOKIE_DOMAIN=smelinx.com
-CORS_ORIGINS=https://smelinx.com
-
-SENDGRID_API_KEY=your-key
-SENDGRID_FROM=notifications@smelinx.com
-SENDGRID_FROM_NAME=Smelinx Notifications
-```
-
-**Frontend (`smelinx-web/.env.production`)**
-```dotenv
-NEXT_PUBLIC_API_URL=https://api.smelinx.com
-```
-
----
-
-### 3. Reverse Proxy with Caddy
-
-`Caddyfile`
-```caddy
-smelinx.com, www.smelinx.com {
-  encode zstd gzip
-  reverse_proxy web:3000
-}
-
-api.smelinx.com {
-  encode zstd gzip
-  reverse_proxy api:8080
-}
-```
-
-Caddy handles **SSL certificates automatically** via Let’s Encrypt.  
-
----
-
-### 4. Docker Compose Setup
-
-`docker-compose.yml`
-```yaml
-version: "3.9"
-services:
-  api:
-    build: ./smelinx-api
-    env_file: ./smelinx-api/.env
-    volumes:
-      - ./smelinx-api/data:/app/data
-    expose:
-      - "8080"
-    restart: unless-stopped
-
-  web:
-    build:
-      context: ./smelinx-web
-      args:
-        - NEXT_TELEMETRY_DISABLED=1
-    env_file: ./smelinx-web/.env.production
-    expose:
-      - "3000"
-    depends_on:
-      - api
-    restart: unless-stopped
-
-  caddy:
-    image: caddy:2-alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - web
-      - api
-    restart: unless-stopped
-
-volumes:
-  caddy_data:
-  caddy_config:
-```
-
----
-
-### 5. Deploy
-```bash
-docker compose build
-docker compose up -d
-```
-
-Access your app at 👉 https://smelinx.com  
-
----
-
-## 🗂️ Data Persistence
-
-- SQLite DB stored at: `smelinx-api/data/smelinx.db`  
-- Backup example:
-```bash
-cp smelinx-api/data/smelinx.db backups/smelinx-$(date +%F-%H%M).db
-```
-
----
-
-## 🛡️ License
-Licensed under the [MIT License](LICENSE).  
-
----
-
-## 🌐 Links
-
-- 🌍 Website: [https://smelinx.com](https://smelinx.com)  
-- 💻 GitHub: [Smelinx Repository](https://github.com/Niranjini-Kathiravan/smelinx)  
+⭐ **Star us on GitHub if Smelinx helps your team!**

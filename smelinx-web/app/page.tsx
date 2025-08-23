@@ -56,7 +56,6 @@ function Carousel({
   return (
     <div className="relative">
       <BrowserFrame>
-        {/* Fixed-height wrapper to normalize differing image sizes */}
         <div className="relative h-[520px] md:h-[620px] bg-black/20 rounded-lg">
           <Image
             key={slides[i].src}
@@ -108,8 +107,8 @@ function Carousel({
 export default function Home() {
   const slides = useMemo(
     () => [
-      { src: "/screenshots/dashboard.png", alt: "Smelinx dashboard: register and list APIs" },
-      { src: "/screenshots/api-details.png", alt: "API detail: versions and scheduled notifications" },
+      { src: "/screenshots/dashboard.png", alt: "Smelinx dashboard: manage your APIs in one place" },
+      { src: "/screenshots/api-details.png", alt: "Smelinx: version details and scheduled notifications" },
     ],
     []
   );
@@ -128,11 +127,12 @@ export default function Home() {
               Open-source • Self-hostable • Secure
             </span>
             <h1 className="mt-4 text-4xl md:text-6xl font-semibold leading-tight tracking-tight">
-              Manage your <span className="text-brand">API lifecycle</span> with confidence.
+              Keep your <span className="text-brand">API lifecycle</span> under control
             </h1>
             <p className="mt-5 text-body text-lg leading-7">
-              Smelinx is the control center for API providers. Register services, track versions, and
-              automate deprecation notices—keeping consumers informed and your team shipping faster.
+              Smelinx helps teams register APIs, track versions, and automate
+              deprecation notices — so your consumers are always informed, and
+              your developers stay focused on building.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -152,7 +152,9 @@ export default function Home() {
               </a>
             </div>
 
-            <p className="mt-4 text-xs text-white/50">No credit card • Self-host in minutes • Enterprise‑friendly</p>
+            <p className="mt-4 text-xs text-white/50">
+              No credit card • Self-host in minutes • Enterprise-friendly
+            </p>
           </div>
         </Container>
       </section>
@@ -160,7 +162,10 @@ export default function Home() {
       {/* DEMO CAROUSEL */}
       <Section id="demo" className="py-16 md:py-24">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold">See Smelinx in action</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">See it in action</h2>
+          <p className="mt-3 text-body">
+            A clean, focused dashboard to manage APIs, versions, and notifications.
+          </p>
         </div>
 
         <div className="mt-10">
@@ -168,68 +173,74 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* FEATURES */}
+        {/* FEATURES */}
       <Section id="features" className="py-16 md:py-24">
         <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Everything you need to manage API versions</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">Built for API providers</h2>
+          <p className="mt-3 text-body">
+            Simple tools that keep your team and your consumers aligned.
+          </p>
         </div>
 
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           <Feature icon={<CheckCircle2 size={18} />} title="Centralized Registry">
-            Maintain a single source of truth for all APIs. Add owners, metadata, and contacts.
+            One place for all your APIs, with owners and metadata.
           </Feature>
           <Feature icon={<SlidersHorizontal size={18} />} title="Version Lifecycle">
-            Mark versions Active, Deprecated, or Sunset with clear timelines visible to everyone.
+            Mark versions Active, Deprecated, or Sunset with clear timelines.
           </Feature>
           <Feature icon={<BellRing size={18} />} title="Automated Notices">
-            Schedule email notifications with delivery logs to keep clients in sync.
+            Schedule deprecation & sunset emails so consumers are never caught off guard.
           </Feature>
         </div>
 
         <div className="mt-5 grid gap-5 md:grid-cols-3">
           <Feature icon={<ShieldCheck size={18} />} title="Access Control">
-            Built‑in roles for owners, admins, and members ensure safe, auditable changes.
+            Roles for owners, admins, and members keep changes safe and auditable.
           </Feature>
-          <Feature icon={<LineChart size={18} />} title="Insights & Adoption">
-            Track consumer adoption, migrations, and upcoming sunsets in one dashboard.
+          <Feature icon={<LineChart size={18} />} title="Insights">
+            Track migrations, adoption, and upcoming sunsets in one dashboard.
           </Feature>
-          <Feature icon={<Mail size={18} />} title="Consumer Directory">
-            Manage client contacts per API—so the right people get the right updates.
+          <Feature icon={<Mail size={18} />} title="Reliable Delivery">
+            Emails go out via trusted providers like SendGrid with full delivery logs.
           </Feature>
         </div>
       </Section>
+
 
       {/* HOW IT WORKS */}
       <Section id="how-it-works" className="py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div className="card-surface rounded-2xl p-6">
-            <div className="text-sm text-white/60">Install</div>
-            <h3 className="mt-2 text-2xl font-semibold">Self‑host in minutes</h3>
-            <ol className="mt-4 space-y-2 text-body list-decimal list-inside">
-              <li>Clone the repo & configure environment (SQLite or Postgres).</li>
-              <li>Run backend (Go + chi) & frontend (Next.js + TailwindCSS).</li>
-              <li>Invite your team, add APIs, and schedule notices.</li>
-            </ol>
+            <div className="text-sm text-white/60">Option 1</div>
+            <h3 className="mt-2 text-2xl font-semibold">Use the hosted dashboard</h3>
+            <ul className="mt-4 space-y-3 text-body">
+              <li>Sign up on <span className="text-brand">smelinx.com</span></li>
+              <li>Register APIs and track versions</li>
+              <li>Schedule notices — emails are delivered automatically</li>
+            </ul>
           </div>
           <div className="card-surface rounded-2xl p-6">
-            <div className="text-sm text-white/60">Operate</div>
-            <h3 className="mt-2 text-2xl font-semibold">Control the lifecycle</h3>
+            <div className="text-sm text-white/60">Option 2</div>
+            <h3 className="mt-2 text-2xl font-semibold">Run locally in minutes</h3>
             <ul className="mt-4 space-y-3 text-body">
-              <li>Central registry for APIs & versions</li>
-              <li>Statuses: Active • Deprecated • Sunset</li>
-              <li>Timed notifications with logs & history</li>
+              <li>Clone the repo from GitHub</li>
+              <li>Start everything with <code>docker compose up</code></li>
+              <li>Bring your own SendGrid key to enable email delivery</li>
             </ul>
           </div>
         </div>
       </Section>
 
+
+
       {/* OPEN SOURCE */}
       <Section id="open-source" className="py-16 md:py-24">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold">Open‑source & enterprise‑ready</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">Open-source & self-hostable</h2>
           <p className="mt-3 text-body">
-            Install Smelinx inside your environment. You own the data—no lock‑in, no hidden costs.
-            Start free (up to 10 APIs) and scale at your own pace.
+            Smelinx is open-source and designed to run inside your environment. 
+            You own the data — no lock-in, no hidden costs.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <a
@@ -238,14 +249,14 @@ export default function Home() {
             >
               Get started free
             </a>
-              <a
-                href="https://github.com/Niranjini-Kathiravan/smelinx"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-white/15 px-5 py-3 text-sm font-medium text-white/90 hover:text-white"
-              >
-                View on GitHub
-              </a>
+            <a
+              href="https://github.com/Niranjini-Kathiravan/smelinx"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg border border-white/15 px-5 py-3 text-sm font-medium text-white/90 hover:text-white"
+            >
+              View on GitHub
+            </a>
           </div>
         </div>
       </Section>

@@ -28,7 +28,7 @@ export default function Footer() {
           <div className="text-white font-semibold">Resources</div>
           <ul className="mt-3 space-y-2">
             <li>
-              <a href="https://github.com/Niranjini-Kathiravan/smelinx" target="_blank" className="hover:text-white">
+              <a href="https://github.com/Niranjini-Kathiravan/Smelinx" target="_blank" className="hover:text-white">
                 GitHub
               </a>
             </li>
