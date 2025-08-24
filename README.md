@@ -31,10 +31,6 @@ Smelinx automates the entire process, ensuring smooth API evolution without surp
 ![Smelinx Dashboard](screenshots/dashboard.png)
 *Overview of all your APIs, versions, and upcoming notifications*
 
-### API Management
-![API Management](screenshots/api-management.png)
-*Manage API versions, deprecation timelines, and consumer notifications*
-
 ### Notification Scheduling
 ![Notification Scheduling](screenshots/notifications.png)
 *Schedule and track automated deprecation notices*
