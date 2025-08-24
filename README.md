@@ -32,7 +32,7 @@ Smelinx automates the entire process, ensuring smooth API evolution without surp
 *Overview of all your APIs, versions, and upcoming notifications*
 
 ### Notification Scheduling
-![Notification Scheduling](screenshots/notifications.png)
+![Notification Scheduling](screenshots/api-details.png)
 *Schedule and track automated deprecation notices*
 
 ## 🧭 Getting Started
