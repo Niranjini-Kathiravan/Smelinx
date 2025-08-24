@@ -1,29 +1,30 @@
-# ---------- Build stage ----------
+# syntax=docker/dockerfile:1.6
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN pnpm i --frozen-lockfile
+
 FROM node:20-alpine AS build
 WORKDIR /app
-
-# deps
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --frozen-lockfile
-
-# build
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
+ENV NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm build
 
-# ---------- Runtime stage ----------
-FROM node:20-alpine AS runtime
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# minimal files needed to run
-COPY --from=build /app/.next ./.next
+# unprivileged user
+RUN addgroup -g 1001 -S nextjs && adduser -S nextjs -u 1001
+# Next.js standalone output
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./package.json
-
+USER 1001
 EXPOSE 3000
-CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
+ENV PORT=3000
+CMD ["node", "server.js"]

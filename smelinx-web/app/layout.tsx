@@ -2,7 +2,11 @@ import "./globals.css";
 
 export const metadata = {
   title: "Smelinx — API Lifecycle Management",
-  description: "Register APIs, track versions, and automate deprecation notices.",
+  description:
+    "Register APIs, track versions, and automate deprecation notices.",
+  icons: {
+    icon: "/favicon.png", // put favicon.ico inside the public/ folder
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,41 @@
+{
+  email you@smelinx.com
+}
+
+# Frontend (and redirect www → root)
+smelinx.com, www.smelinx.com {
+  encode zstd gzip
+
+  @www host www.smelinx.com
+  redir @www https://smelinx.com{uri} permanent
+
+  reverse_proxy web:3000 {
+    health_uri /
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "DENY"
+  }
+}
+
+# Backend API
+api.smelinx.com {
+  encode zstd gzip
+
+  @health path /health
+  handle @health { respond "ok" 200 }
+
+  reverse_proxy api:8080 {
+    health_uri /health
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "DENY"
+  }
+}

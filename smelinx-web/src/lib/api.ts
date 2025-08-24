@@ -101,7 +101,7 @@ export const api = {
   async signup(email: string, password: string, orgName: string) {
     const r = await j(`${BASE}/auth/signup`, {
       method: "POST",
-      body: JSON.stringify({ email, password, orgName }), // camelCase
+      body: JSON.stringify({ email, password, org_name: orgName }), // camelCase
     });
     return parseOrThrow(r);
   },

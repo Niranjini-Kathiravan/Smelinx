@@ -1,0 +1,25 @@
+{
+  email you@smelinx.com
+}
+
+api.smelinx.com {
+  encode zstd gzip
+
+  # Health check (optional convenience)
+  @health path /health
+  handle @health {
+    respond "ok" 200
+  }
+
+  # Let your API handle CORS. (Best practice)
+  reverse_proxy api:8080 {
+    health_uri /health
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "DENY"
+  }
+}

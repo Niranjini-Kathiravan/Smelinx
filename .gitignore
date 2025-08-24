@@ -66,3 +66,6 @@ smelinx-api/data/      # SQLite DB and app data (keep local only)
 **/build/
 **/out/
 
+
+.smelinx-key.pem
+

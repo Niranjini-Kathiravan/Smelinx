@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  api:
+    image: niranjini/smelinx-api:latest   # push from your laptop/CI
+    env_file: ./.env
+    restart: unless-stopped
+    networks: [app]
+    volumes:
+      - api-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    networks: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+
+networks:
+  app:
+
+volumes:
+  api-data:
+  caddy-data:
+  caddy-config:

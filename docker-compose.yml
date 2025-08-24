@@ -1,26 +1,47 @@
-version: "3.9"
-
 services:
-  api:
-    build:
-      context: ./smelinx-api
-      dockerfile: Dockerfile
-    env_file:
-      - ./smelinx-api/.env
+  # one-time init: ensure /app/data is writable by API's nonroot uid (65532)
+  fix-perms:
+    image: busybox
+    command: sh -c "mkdir -p /app/data && chown -R 65532:65532 /app/data"
     volumes:
-      - ./smelinx-api/data:/app/data        # persist SQLite locally
-    ports:
-      - "8080:8080"
+      - ./smelinx-api/data:/app/data
+    restart: "no"
+
+  api:
+    build: ./smelinx-api
+    env_file: ./smelinx-api/.env
+    depends_on: [fix-perms]
+    volumes:
+      - ./smelinx-api/data:/app/data
     restart: unless-stopped
+    networks: [app]
 
   web:
     build:
       context: ./smelinx-web
-      dockerfile: Dockerfile
-    env_file:
-      - ./smelinx-web/.env
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
+      args:
+        NEXT_PUBLIC_API_URL: "https://api.smelinx.com"
+    env_file: ./smelinx-web/.env.production
+    depends_on: [api]
     restart: unless-stopped
+    networks: [app]
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, web]
+    restart: unless-stopped
+    networks: [app]
+
+networks:
+  app:
+
+volumes:
+  caddy_data:
+  caddy_config:
