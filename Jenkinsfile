@@ -4,8 +4,8 @@ pipeline {
 
   environment {
     DOCKER_USER = 'niranjini'
-    IMAGE_API = "${DOCKER_USER}/smelinx-api"
-    IMAGE_WEB = "${DOCKER_USER}/smelinx-web"
+    IMAGE_API   = "${DOCKER_USER}/smelinx-api"
+    IMAGE_WEB   = "${DOCKER_USER}/smelinx-web"
     NEXT_PUBLIC_API_URL = "https://api.smelinx.com"
   }
 
@@ -27,8 +27,8 @@ pipeline {
     stage('Build & Test API') {
       agent {
         docker {
-          image 'golang:1.22'        // has Go preinstalled
-          reuseNode true              // mounts the workspace
+          image 'golang:1.22'
+          reuseNode true
         }
       }
       steps {
@@ -46,7 +46,7 @@ pipeline {
     stage('Build WEB') {
       agent {
         docker {
-          image 'node:20-bullseye'   // has Node + corepack
+          image 'node:20-bullseye'
           reuseNode true
         }
       }
@@ -62,23 +62,19 @@ pipeline {
       }
     }
 
-    // NOTE: Docker build/push runs on the Jenkins host (has /var/run/docker.sock)
     stage('Docker Build') {
       steps {
         sh '''
           set -e
           docker version
 
-          # Build API image using smelinx-api context
           docker build -t $IMAGE_API:$API_TAG smelinx-api
 
-          # Build WEB image using smelinx-web context with build-arg
           docker build \
             --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
             -t $IMAGE_WEB:$WEB_TAG \
             smelinx-web
 
-          # Tag latest for convenience
           docker tag $IMAGE_API:$API_TAG $IMAGE_API:latest
           docker tag $IMAGE_WEB:$WEB_TAG $IMAGE_WEB:latest
         '''
@@ -107,6 +103,6 @@ pipeline {
 
   post {
     success { echo "✅ Pushed $IMAGE_API:$API_TAG and $IMAGE_WEB:$WEB_TAG" }
-    failure { echo "❌ Build or push failed — check logs." }
+    failure { echo "❌ Build/push failed — check logs." }
   }
 }
