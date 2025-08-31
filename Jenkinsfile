@@ -25,10 +25,17 @@ pipeline {
     }
 
     stage('Build & Test API') {
+      agent {
+        docker {
+          image 'golang:1.22'        // has Go preinstalled
+          reuseNode true              // mounts the workspace
+        }
+      }
       steps {
         sh '''
           set -e
           cd smelinx-api
+          go version
           go mod tidy
           go build ./...
           go test ./... -v
@@ -37,26 +44,41 @@ pipeline {
     }
 
     stage('Build WEB') {
+      agent {
+        docker {
+          image 'node:20-bullseye'   // has Node + corepack
+          reuseNode true
+        }
+      }
       steps {
         sh '''
           set -e
           cd smelinx-web
-          if ! command -v pnpm >/dev/null 2>&1; then
-            corepack enable
-            corepack prepare pnpm@latest --activate
-          fi
+          corepack enable
+          corepack prepare pnpm@latest --activate
           pnpm install --frozen-lockfile
           NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" pnpm build
         '''
       }
     }
 
+    // NOTE: Docker build/push runs on the Jenkins host (has /var/run/docker.sock)
     stage('Docker Build') {
       steps {
         sh '''
           set -e
+          docker version
+
+          # Build API image using smelinx-api context
           docker build -t $IMAGE_API:$API_TAG smelinx-api
-          docker build --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" -t $IMAGE_WEB:$WEB_TAG smelinx-web
+
+          # Build WEB image using smelinx-web context with build-arg
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
+            -t $IMAGE_WEB:$WEB_TAG \
+            smelinx-web
+
+          # Tag latest for convenience
           docker tag $IMAGE_API:$API_TAG $IMAGE_API:latest
           docker tag $IMAGE_WEB:$WEB_TAG $IMAGE_WEB:latest
         '''
