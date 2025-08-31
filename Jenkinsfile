@@ -3,18 +3,23 @@ pipeline {
   options { timestamps() }
 
   environment {
-    // --- adjust only if needed ---
+    // --- images ---
     DOCKER_USER = 'niranjini'
     IMAGE_API   = "${DOCKER_USER}/smelinx-api"
     IMAGE_WEB   = "${DOCKER_USER}/smelinx-web"
 
-    // Public, baked into the Next.js client bundle at build time
+    // baked into Next.js client bundle at docker build time
     NEXT_PUBLIC_API_URL = "https://api.smelinx.com"
+
+    // --- EC2 deploy target (EDIT THESE) ---
+    EC2_HOST   = '63.179.64.60'   // e.g. ec2-xx-xx-xx-xx.compute-1.amazonaws.com
+    DEPLOY_DIR = '/opt/smelinx'         // where docker-compose.yml + Caddyfile live on the server
+    COMPOSE_FILE = 'docker-compose.yml' // file to copy & run remotely
   }
 
   stages {
 
-    stage('Checkout (manual clone)') {
+    stage('Checkout') {
       steps {
         sh '''
           set -e
@@ -71,10 +76,8 @@ pipeline {
           corepack prepare pnpm@latest --activate
           pnpm install --frozen-lockfile
           pnpm -v
-          # Optional: run lint/tests if you have them
           pnpm lint || true
-          # Do NOT build here. The only build that matters is inside the Dockerfile,
-          # where NEXT_PUBLIC_API_URL is baked via --build-arg.
+          # Do NOT build here; Dockerfile builds with NEXT_PUBLIC_API_URL
           EOF
           chmod +x smelinx-web/ci_web.sh
 
@@ -90,13 +93,12 @@ pipeline {
     stage('Docker Build & Push (multi-arch)') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: 'DOCKERHUB_CREDS',   // Jenkins credential (Docker Hub user + token/password)
+          credentialsId: 'DOCKERHUB_CREDS',
           usernameVariable: 'DUSER',
           passwordVariable: 'DPASS'
         )]) {
           sh '''
             set -e
-
             echo "$DPASS" | docker login -u "$DUSER" --password-stdin
 
             # Ensure buildx exists (install if missing)
@@ -116,10 +118,10 @@ pipeline {
               docker buildx version
             fi
 
-            # Enable binfmt for cross builds
+            # Enable binfmt for cross-arch
             docker run --privileged --rm tonistiigi/binfmt --install all || true
 
-            # Create/select a builder
+            # Create/select builder
             docker buildx create --name ci-builder --driver docker-container --use >/dev/null 2>&1 || \
               docker buildx use ci-builder
             docker buildx inspect --bootstrap
@@ -132,7 +134,7 @@ pipeline {
               smelinx-api \
               --push
 
-            echo ">> Building WEB image: $IMAGE_WEB:$WEB_TAG with NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
+            echo ">> Building WEB image: $IMAGE_WEB:$WEB_TAG (NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL)"
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
@@ -144,17 +146,59 @@ pipeline {
         }
       }
     }
+
+    stage('Deploy to EC2') {
+      steps {
+        withCredentials([
+          usernamePassword(credentialsId: 'DOCKERHUB_CREDS', usernameVariable: 'DUSER', passwordVariable: 'DPASS'),
+          sshUserPrivateKey(credentialsId: 'EC2_SSH_KEY', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')
+        ]) {
+          sh '''
+            set -e
+
+            # Sanity: files to deploy must exist in workspace
+            ls -la "${COMPOSE_FILE}"
+            ls -la Caddyfile
+
+            echo ">> Copy compose + Caddy to EC2:${EC2_HOST}:${DEPLOY_DIR}"
+            ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SSH_USER@$EC2_HOST" "mkdir -p '$DEPLOY_DIR'"
+            scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "${COMPOSE_FILE}" "Caddyfile" "$SSH_USER@$EC2_HOST:$DEPLOY_DIR/"
+
+            echo ">> Pin release via .env (GIT_SHA=${GIT_SHA}) and deploy"
+            ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SSH_USER@$EC2_HOST" bash -lc '
+              set -e
+              cd "'"$DEPLOY_DIR"'"
+              # Write .env so compose uses image tags :${GIT_SHA}
+              printf "GIT_SHA=%s\n" "'"$GIT_SHA"'" > .env
+              echo "'"$DPASS"'" | docker login -u "'"$DUSER"'" --password-stdin || true
+              docker compose pull
+              docker compose up -d
+              docker image prune -f || true
+            '
+
+            echo ">> Post-deploy health checks"
+            ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SSH_USER@$EC2_HOST" bash -lc '
+              set -e
+              curl -fsS https://api.smelinx.com/health >/dev/null
+              echo "API /health OK"
+              curl -fsS https://smelinx.com/ >/dev/null || true
+              echo "Web reachable"
+            '
+          '''
+        }
+      }
+    }
   }
 
   post {
     success {
-      echo "✅ Multi-arch images pushed:"
-      echo "  - ${IMAGE_API}:${API_TAG} and :latest"
-      echo "  - ${IMAGE_WEB}:${WEB_TAG} and :latest"
-      echo "👉 Deploy these tags on EC2 via docker compose (pull & up -d)."
+      echo "✅ Pushed and deployed:"
+      echo "   ${IMAGE_API}:${API_TAG}"
+      echo "   ${IMAGE_WEB}:${WEB_TAG}"
+      echo "   Host: ${EC2_HOST}  Dir: ${DEPLOY_DIR}  GIT_SHA: ${GIT_SHA}"
     }
     failure {
-      echo "❌ Pipeline failed — check the last stage logs."
+      echo "❌ Pipeline failed — check logs above."
     }
   }
 }
