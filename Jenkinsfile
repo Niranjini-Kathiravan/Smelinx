@@ -3,12 +3,12 @@ pipeline {
   options { timestamps() }
 
   environment {
-    // --- change only if needed ---
+    // --- adjust only if needed ---
     DOCKER_USER = 'niranjini'
     IMAGE_API   = "${DOCKER_USER}/smelinx-api"
     IMAGE_WEB   = "${DOCKER_USER}/smelinx-web"
 
-    // Next.js build-time public env for your web image
+    // Public, baked into the Next.js client bundle at build time
     NEXT_PUBLIC_API_URL = "https://api.smelinx.com"
   }
 
@@ -34,11 +34,12 @@ pipeline {
           env.API_TAG = env.GIT_SHA
           env.WEB_TAG = env.GIT_SHA
           echo "Using tag: ${env.GIT_SHA}"
+          echo "NEXT_PUBLIC_API_URL = ${env.NEXT_PUBLIC_API_URL}"
         }
       }
     }
 
-    stage('Build & Test API (in Go container)') {
+    stage('Build & Test API (Go)') {
       steps {
         sh '''
           set -e
@@ -60,7 +61,7 @@ pipeline {
       }
     }
 
-    stage('Build WEB (in Node container)') {
+    stage('Web deps + lint (Node)') {
       steps {
         sh '''
           set -e
@@ -69,12 +70,15 @@ pipeline {
           corepack enable
           corepack prepare pnpm@latest --activate
           pnpm install --frozen-lockfile
-          NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" pnpm build
+          pnpm -v
+          # Optional: run lint/tests if you have them
+          pnpm lint || true
+          # Do NOT build here. The only build that matters is inside the Dockerfile,
+          # where NEXT_PUBLIC_API_URL is baked via --build-arg.
           EOF
           chmod +x smelinx-web/ci_web.sh
 
           docker run --rm \
-            -e NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
             -v "$PWD":/ws \
             -w /ws/smelinx-web \
             node:20-bullseye \
@@ -86,7 +90,7 @@ pipeline {
     stage('Docker Build & Push (multi-arch)') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: 'DOCKERHUB_CREDS',   // Jenkins cred (username/password or token)
+          credentialsId: 'DOCKERHUB_CREDS',   // Jenkins credential (Docker Hub user + token/password)
           usernameVariable: 'DUSER',
           passwordVariable: 'DPASS'
         )]) {
@@ -95,7 +99,7 @@ pipeline {
 
             echo "$DPASS" | docker login -u "$DUSER" --password-stdin
 
-            # --- Install Buildx plugin if missing (portable paths) ---
+            # Ensure buildx exists (install if missing)
             if ! docker buildx version >/dev/null 2>&1; then
               echo "Installing docker buildx plugin..."
               mkdir -p /usr/local/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins || true
@@ -112,15 +116,15 @@ pipeline {
               docker buildx version
             fi
 
-            # --- Enable binfmt for cross-arch builds ---
+            # Enable binfmt for cross builds
             docker run --privileged --rm tonistiigi/binfmt --install all || true
 
-            # --- Create/select builder (docker-container driver) ---
+            # Create/select a builder
             docker buildx create --name ci-builder --driver docker-container --use >/dev/null 2>&1 || \
               docker buildx use ci-builder
             docker buildx inspect --bootstrap
 
-            # --- Build & push API (amd64 + arm64) ---
+            echo ">> Building API image: $IMAGE_API:$API_TAG"
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t $IMAGE_API:$API_TAG \
@@ -128,7 +132,7 @@ pipeline {
               smelinx-api \
               --push
 
-            # --- Build & push WEB (amd64 + arm64) ---
+            echo ">> Building WEB image: $IMAGE_WEB:$WEB_TAG with NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
@@ -147,6 +151,7 @@ pipeline {
       echo "✅ Multi-arch images pushed:"
       echo "  - ${IMAGE_API}:${API_TAG} and :latest"
       echo "  - ${IMAGE_WEB}:${WEB_TAG} and :latest"
+      echo "👉 Deploy these tags on EC2 via docker compose (pull & up -d)."
     }
     failure {
       echo "❌ Pipeline failed — check the last stage logs."

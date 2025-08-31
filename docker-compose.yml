@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   # one-time init: ensure /app/data is writable by API's nonroot uid (65532)
   fix-perms:
@@ -8,7 +10,7 @@ services:
     restart: "no"
 
   api:
-    build: ./smelinx-api
+    image: niranjini/smelinx-api:${GIT_SHA:-latest}
     env_file: ./smelinx-api/.env
     depends_on: [fix-perms]
     volumes:
@@ -17,11 +19,9 @@ services:
     networks: [app]
 
   web:
-    build:
-      context: ./smelinx-web
-      args:
-        NEXT_PUBLIC_API_URL: "https://api.smelinx.com"
-    env_file: ./smelinx-web/.env.production
+    image: niranjini/smelinx-web:${GIT_SHA:-latest}
+    # IMPORTANT: do NOT pass NEXT_PUBLIC_* at runtime; it's baked at build
+    # Remove env_file for web to avoid overriding baked values
     depends_on: [api]
     restart: unless-stopped
     networks: [app]
